@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversor de Moedas</title>
+  <style>
+    :root {
+      --primary: #f200f2;
+      --secondary: #1219dc;
+      --background: #000000;
+      --surface: #151515;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --border: #27272a;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background: var(--background);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .converter {
+      background: var(--surface);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #1e1e1e;
+      color: var(--text-primary);
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.3s;
+    }
+
+    input:focus, select:focus { border-color: var(--primary); }
+
+    button {
+  background: var(--gradient);
+  border: none;
+  color: white;
+  padding: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(242, 0, 242, 0.3);
+}
+
+button:hover::before {
+  left: 100%;
+}
+
+
+    #result {
+      margin-top: 1.5rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <h1>💱 Conversor de Moedas</h1>
+  <div class="converter">
+    <input type="number" id="amount" placeholder="Digite o valor" value="1">
+    <select id="from"></select>
+    <select id="to"></select>
+    <button onclick="convert()">Converter</button>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    // Dicionário com nomes em português
+    const currencyNamesPT = {
+      USD: "Dólar Americano",
+      BRL: "Real Brasileiro",
+      EUR: "Euro",
+      GBP: "Libra Esterlina",
+      JPY: "Iene Japonês",
+      CNY: "Yuan Chinês",
+      ARS: "Peso Argentino",
+      MXN: "Peso Mexicano",
+      CAD: "Dólar Canadense",
+      AUD: "Dólar Australiano",
+      CHF: "Franco Suíço",
+      RUB: "Rublo Russo",
+      INR: "Rúpia Indiana",
+      KRW: "Won Sul-coreano",
+      ZAR: "Rand Sul-africano",
+      TRY: "Lira Turca",
+      CLP: "Peso Chileno",
+      SEK: "Coroa Sueca",
+      NOK: "Coroa Norueguesa",
+      DKK: "Coroa Dinamarquesa"
+    };
+
+    async function loadCurrencies() {
+      const res = await fetch("https://api.frankfurter.app/currencies");
+      const currencies = await res.json();
+
+      const fromSelect = document.getElementById("from");
+      const toSelect = document.getElementById("to");
+
+      for (const [code, name] of Object.entries(currencies)) {
+        const option1 = document.createElement("option");
+        option1.value = code;
+        option1.textContent = `${code} - ${currencyNamesPT[code] || name}`;
+        fromSelect.appendChild(option1);
+
+        const option2 = document.createElement("option");
+        option2.value = code;
+        option2.textContent = `${code} - ${currencyNamesPT[code] || name}`;
+        toSelect.appendChild(option2);
+      }
+
+      fromSelect.value = "USD";
+      toSelect.value = "BRL";
+    }
+
+    async function convert() {
+      const amount = document.getElementById("amount").value;
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+
+      if (from === to) {
+        document.getElementById("result").innerText = "Escolha moedas diferentes!";
+        return;
+      }
+
+      const res = await fetch(`https://api.frankfurter.app/latest?amount=${amount}&from=${from}&to=${to}`);
+      const data = await res.json();
+      document.getElementById("result").innerText = `${amount} ${currencyNamesPT[from] || from} = ${data.rates[to]} ${currencyNamesPT[to] || to}`;
+    }
+
+    loadCurrencies();
+  </script>
+</body>
+</html>
